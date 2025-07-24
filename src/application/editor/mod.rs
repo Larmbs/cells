@@ -180,7 +180,23 @@ impl Editor {
                         text: String::from("Title goes here"),
                     }],
                 },
+                style: None,
             }],
+            style: Style {
+                font: (),
+                background_color: (),
+                border_color: (),
+                padding: (),
+                header1: (),
+                header2: (),
+                header3: (),
+                paragraph: (),
+                number_input: (),
+                text_input: (),
+                button: (),
+                number_display: (),
+                text_display: (),
+            },
         }
     }
 }

@@ -4,10 +4,11 @@ mod editor;
 mod simulation;
 pub mod ui;
 use ui::*;
+use ui::style::*;
 
 use std::mem;
 
-use macroquad::prelude::{KeyCode, WHITE, clear_background, is_key_pressed, Vec2};
+use macroquad::{color::Color, prelude::{clear_background, is_key_pressed, KeyCode, Vec2, WHITE}, ui::Style};
 
 enum Mode {
     Edit(editor::Editor),
@@ -75,5 +76,27 @@ impl Application {
                 },
             }],
         }
+    }
+}
+
+pub fn application_style() -> Style {
+    Style {
+        background: Color::from_rgba(77, 75, 76, 128),
+        background_hovered: todo!(),
+        background_clicked: todo!(),
+        color: todo!(),
+        color_inactive: todo!(),
+        color_hovered: todo!(),
+        color_clicked: todo!(),
+        color_selected: todo!(),
+        color_selected_hovered: todo!(),
+        background_margin: todo!(),
+        margin: todo!(),
+        font: todo!(),
+        text_color: todo!(),
+        text_color_hovered: todo!(),
+        text_color_clicked: todo!(),
+        font_size: todo!(),
+        reverse_background_z: todo!(),
     }
 }
