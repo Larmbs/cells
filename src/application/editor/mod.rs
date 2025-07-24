@@ -1,12 +1,12 @@
 use super::craft::components::*;
 use super::craft::*;
+use super::ui::*;
 use macroquad::color::WHITE;
 use macroquad::prelude::{
     KeyCode, MouseButton, Vec2, is_key_pressed, is_mouse_button_pressed, mouse_position,
 };
 use macroquad::window::clear_background;
-
-mod panel;
+use macroquad::window::screen_height;
 
 enum EditMode {
     EditNodes,
@@ -25,6 +25,7 @@ impl EditMode {
 pub struct Editor {
     mode: EditMode,
     craft: Craft,
+    ui: UI,
     selected_nodes: Vec<usize>,
 }
 
@@ -33,6 +34,7 @@ impl Editor {
         Self {
             mode: EditMode::EditNodes,
             craft: Craft::new(),
+            ui: Self::default_editor_ui(),
             selected_nodes: Vec::new(),
         }
     }
@@ -40,6 +42,7 @@ impl Editor {
         Self {
             mode: EditMode::EditNodes,
             craft,
+            ui: Self::default_editor_ui(),
             selected_nodes: Vec::new(),
         }
     }
@@ -92,7 +95,7 @@ impl Editor {
                     } else {
                         self.selected_nodes.clear();
                     }
-                },
+                }
             }
         }
 
@@ -122,6 +125,7 @@ impl Editor {
     pub fn draw(&self) {
         clear_background(WHITE);
         self.craft.draw(&self.selected_nodes);
+        self.ui.draw();
     }
 
     fn add_node(&mut self, pos: Vec2, node_type: NodeType) {
@@ -163,5 +167,20 @@ impl Editor {
 
     pub fn close(self) -> Craft {
         self.craft
+    }
+
+    fn default_editor_ui() -> UI {
+        UI {
+            panels: vec![Panel {
+                hidden: false,
+                position: UIUnits::Scaled { x: 0.0, y: 0.0 },
+                size: UIUnits::Scaled { x: 0.3, y: 1.0 },
+                root_component: Component::Column {
+                    components: vec![Component::Header1 {
+                        text: String::from("Title goes here"),
+                    }],
+                },
+            }],
+        }
     }
 }
