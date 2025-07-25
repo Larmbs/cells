@@ -1,51 +1,57 @@
 #![allow(unused)]
+
+use crate::application::craft::Craft;
 pub mod craft;
-mod editor;
-mod simulation;
 pub mod ui;
 
-use macroquad::prelude::next_frame;
+/* Scenes */
+mod menu;
+mod editor;
+mod simulation;
 
-
-pub trait ApplicationMode {
-    fn update(&mut self) -> ApplicationMessage;
+pub trait Scene {
+    fn update(&mut self) -> AppMessage;
     fn draw(&self);
 }
-pub enum ApplicationMessage {
+pub enum AppMessage {
     None,
     Quit,
-    MenuMode,
-    EditMode,
-    SimulateMode,
+    OpenMenu,
+    OpenEditor(Option<Craft>),
+    OpenSimulation(Craft)
 }
 
 pub struct Application {
-    mode: Box<dyn ApplicationMode>,
+    mode: Box<dyn Scene>,
 }
 impl Application {
     pub fn new() -> Self {
         Self {
-            mode: Box::new(editor::Editor::new()),
+            mode: Box::new(menu::Menu::new()),
         }
     }
     pub async fn run(&mut self) {
         loop {
             match self.mode.update() {
-                ApplicationMessage::None => (),
-                ApplicationMessage::Quit => break,
-                ApplicationMessage::MenuMode => {
-                    
+                AppMessage::None => (),
+                AppMessage::Quit => break,
+                AppMessage::OpenMenu => {
+                    self.mode = Box::new(menu::Menu::new())
                 },
-                ApplicationMessage::EditMode => {
-
+                AppMessage::OpenEditor(craft) => {
+                    if let Some(craft) = craft {
+                        self.mode = Box::new(editor::Editor::edit_craft(craft))
+                    } else {
+                        self.mode = Box::new(editor::Editor::new())
+                    }
                 },
-                ApplicationMessage::SimulateMode => {
-                    
+                AppMessage::OpenSimulation(craft) => {
+                    self.mode = Box::new(simulation::Simulation::new(craft))
                 },
             }
 
             self.mode.draw();
-            next_frame().await;
+            macroquad::prelude::next_frame().await;
         }
     }
 }

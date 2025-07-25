@@ -1,12 +1,12 @@
 mod enviroment;
 
-use crate::application::{ApplicationMessage, ApplicationMode};
+use crate::application::{AppMessage, Scene};
 
 use super::craft::components::*;
 use super::craft::*;
 use macroquad::{
     color::WHITE,
-    prelude::{Vec2, get_time},
+    prelude::{Vec2, get_time, is_key_pressed, KeyCode},
     time::get_frame_time,
     window::clear_background,
 };
@@ -18,8 +18,13 @@ pub struct Simulation {
     original_craft: Craft,
     craft: Craft,
 }
-impl ApplicationMode for Simulation {
-    fn update(&mut self) -> ApplicationMessage {
+impl Scene for Simulation {
+    fn update(&mut self) -> AppMessage {
+        // Changes scene to Editor
+        if is_key_pressed(KeyCode::Space) {
+            return AppMessage::OpenEditor(Some(self.original_craft.clone()))
+        }
+
         let dt = get_frame_time() as f32;
 
         // Verlet integration
@@ -88,7 +93,7 @@ impl ApplicationMode for Simulation {
                 }
             }
         }
-        ApplicationMessage::None
+        AppMessage::None
     }
 
     fn draw(&self) {

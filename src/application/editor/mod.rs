@@ -1,4 +1,4 @@
-use crate::application::{ApplicationMode, ApplicationMessage};
+use crate::application::{Scene, AppMessage};
 
 use super::craft::components::*;
 use super::craft::*;
@@ -27,11 +27,11 @@ pub struct Editor {
     craft: Craft,
     selected_nodes: Vec<usize>,
 }
-impl ApplicationMode for Editor {
-    fn update(&mut self) -> ApplicationMessage {
+impl Scene for Editor {
+    fn update(&mut self) -> AppMessage {
         // Changes scene to Simulate
         if is_key_pressed(KeyCode::Space) {
-            return ApplicationMessage::SimulateMode
+            return AppMessage::OpenSimulation(self.craft.clone())
         }
 
         // Swaps build mode
@@ -103,7 +103,7 @@ impl ApplicationMode for Editor {
         //     }
         // }
 
-        super::ApplicationMessage::None
+        super::AppMessage::None
     }
 
     fn draw(&self) {
