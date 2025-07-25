@@ -1,9 +1,15 @@
-
 mod enviroment;
 
-use super::craft::*;
-use macroquad::{color::WHITE, prelude::{get_time, Vec2}, time::get_frame_time, window::clear_background};
+use crate::application::{ApplicationMessage, ApplicationMode};
+
 use super::craft::components::*;
+use super::craft::*;
+use macroquad::{
+    color::WHITE,
+    prelude::{Vec2, get_time},
+    time::get_frame_time,
+    window::clear_background,
+};
 
 const FLOOR: f32 = 600.0;
 
@@ -12,17 +18,8 @@ pub struct Simulation {
     original_craft: Craft,
     craft: Craft,
 }
-
-impl Simulation {
-    pub fn new(craft: Craft) -> Self {
-        Self {
-            gravity: Vec2::new(0.0, 500.0),
-            original_craft: craft.clone(),
-            craft,
-        }
-    }
-
-    pub fn update(&mut self) -> bool {
+impl ApplicationMode for Simulation {
+    fn update(&mut self) -> ApplicationMessage {
         let dt = get_frame_time() as f32;
 
         // Verlet integration
@@ -51,7 +48,9 @@ impl Simulation {
                 let (pa, pb) = (self.craft.nodes[a].pos, self.craft.nodes[b].pos);
                 let delta = pb - pa;
                 let dist = delta.length();
-                if dist == 0.0 { continue; }
+                if dist == 0.0 {
+                    continue;
+                }
                 let dir = delta / dist;
 
                 match rod.rod_type {
@@ -74,7 +73,11 @@ impl Simulation {
                         let force = dir * (dist - rest_length) * k;
                         self.move_nodes(a, b, force);
                     }
-                    RodType::PISTON { min_length, max_length, length } => {
+                    RodType::PISTON {
+                        min_length,
+                        max_length,
+                        length,
+                    } => {
                         // Dynamic length, could be user-controlled or animated
                         // For now, just placeholder behavior
                         let desired_length = 150.0 + 50.0 * (get_time() as f32).sin();
@@ -85,12 +88,21 @@ impl Simulation {
                 }
             }
         }
-        true
+        ApplicationMessage::None
     }
 
-    pub fn draw(&self) {
+    fn draw(&self) {
         clear_background(WHITE);
         self.craft.draw(&Vec::new());
+    }
+}
+impl Simulation {
+    pub fn new(craft: Craft) -> Self {
+        Self {
+            gravity: Vec2::new(0.0, 500.0),
+            original_craft: craft.clone(),
+            craft,
+        }
     }
 
     fn move_nodes(&mut self, a: usize, b: usize, correction: Vec2) {
@@ -103,6 +115,6 @@ impl Simulation {
     }
 
     pub fn close(self) -> Craft {
-        self.craft
+        self.original_craft
     }
 }

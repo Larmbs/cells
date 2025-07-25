@@ -14,7 +14,7 @@ pub enum NodeType {
     Joint,
 }
 impl Node {
-    pub fn new(pos: Vec2, node_type: NodeType) -> Self{
+    pub fn new(pos: Vec2, node_type: NodeType) -> Self {
         Self {
             pos,
             prev_pos: pos,
@@ -32,13 +32,21 @@ pub struct Rod {
 }
 #[derive(Clone, PartialEq)]
 pub enum RodType {
-    SOLID { length: f32 },
-    ROPE { length: f32 },
+    SOLID {
+        length: f32,
+    },
+    ROPE {
+        length: f32,
+    },
     SPRING {},
-    PISTON{ min_length: f32, max_length: f32, length: f32 },
+    PISTON {
+        min_length: f32,
+        max_length: f32,
+        length: f32,
+    },
 }
 impl Rod {
-    pub fn new(node_a: usize, node_b: usize, rod_type: RodType) -> Self{
+    pub fn new(node_a: usize, node_b: usize, rod_type: RodType) -> Self {
         Self {
             node_a,
             node_b,
@@ -55,7 +63,7 @@ pub struct Triangle {
     node_c: usize,
 }
 impl Triangle {
-    pub fn new(node_a: usize, node_b: usize, node_c: usize) -> Self{
+    pub fn new(node_a: usize, node_b: usize, node_c: usize) -> Self {
         Self {
             node_a,
             node_b,

@@ -1,61 +1,56 @@
-mod components;
-pub mod style;
-mod units;
+use macroquad::ui::{InputHandler, root_ui};
 
-use components::*;
-use style::*;
-use units::*;
+pub mod units;
+use units::UiUnits;
 
-use macroquad::prelude::*;
-
-const HEADER1_SIZE: f32 = 32.0;
-const HEADER2_SIZE: f32 = 24.0;
-const HEADER3_SIZE: f32 = 18.0;
-const PARAGRAPH_SIZE: f32 = 14.0;
-const PADDING: f32 = 8.0;
-
-pub struct UI {
-    pub panels: Vec<Panel>,
-    style: Style,
+pub struct Ui {
+    ui_components: Vec<UiComponent>,
 }
-impl UI {
-    pub fn draw(&self) {
-        for panel in &self.panels {
-            panel.draw(&self.style);
+impl Ui {
+    
+}
+
+struct UiComponent {
+    position: UiUnits,
+    dimensions: UiUnits,
+    root_element: Element,
+}
+
+enum Element {
+    /* Static */
+    Text { label: String },
+
+    /* Display */
+    NumberDisplay { current: f32 },
+    TextDisplay { current: String },
+
+    /* Inputs */
+    NumberInput { label: String, min: f32, max: f32 },
+    NumberSlider { label: String, min: f32, max: f32 },
+    TextInput { label: String },
+    SelectBox { label: String, options: Vec<String> },
+    Button { label: String },
+
+    /* Format */
+    Row { elements: Vec<Element> },
+    Column { elements: Vec<Element> },
+}
+impl Element {
+    fn draw(&self) {
+        match self {
+            Element::Text { label } => todo!(),
+
+            Element::NumberDisplay { current } => todo!(),
+            Element::TextDisplay { current } => todo!(),
+
+            Element::NumberInput { label, min, max } => todo!(),
+            Element::NumberSlider { label, min, max } => todo!(),
+            Element::TextInput { label } => todo!(),
+            Element::SelectBox { label, options } => todo!(),
+            Element::Button { label } => todo!(),
+
+            Element::Row { elements } => todo!(),
+            Element::Column { elements } => todo!(),
         }
-    }
-}
-
-pub struct Panel {
-    pub hidden: bool,
-    pub position: UIUnits,
-    pub size: UIUnits,
-    pub root_component: Component,
-    pub style: Option<Style>,
-}
-impl Panel {
-    fn draw(&self, parents_style: &Style) {
-        if self.hidden {
-            return;
-        }
-
-        let pos = self.position.get_size();
-        let size = self.size.get_size();
-        // Draw panel background
-        draw_rectangle(pos.x, pos.y, size.x, size.y, GRAY);
-
-        // Start drawing components at panel's top-left + padding
-        let mut cursor = pos + vec2(PADDING, PADDING);
-        let mut container_size = size - (PADDING * 2.0);
-
-        self.root_component.draw(
-            &mut cursor,
-            container_size,
-            if let Some(style) = &self.style {
-                style
-            } else {
-                parents_style
-            },
-        );
     }
 }

@@ -1,12 +1,12 @@
+use crate::application::{ApplicationMode, ApplicationMessage};
+
 use super::craft::components::*;
 use super::craft::*;
-use super::ui::*;
 use macroquad::color::WHITE;
 use macroquad::prelude::{
     KeyCode, MouseButton, Vec2, is_key_pressed, is_mouse_button_pressed, mouse_position,
 };
 use macroquad::window::clear_background;
-use macroquad::window::screen_height;
 
 enum EditMode {
     EditNodes,
@@ -25,32 +25,16 @@ impl EditMode {
 pub struct Editor {
     mode: EditMode,
     craft: Craft,
-    ui: UI,
     selected_nodes: Vec<usize>,
 }
-
-impl Editor {
-    pub fn new() -> Self {
-        Self {
-            mode: EditMode::EditNodes,
-            craft: Craft::new(),
-            ui: Self::default_editor_ui(),
-            selected_nodes: Vec::new(),
+impl ApplicationMode for Editor {
+    fn update(&mut self) -> ApplicationMessage {
+        // Changes scene to Simulate
+        if is_key_pressed(KeyCode::Space) {
+            return ApplicationMessage::SimulateMode
         }
-    }
-    pub fn edit_craft(craft: Craft) -> Self {
-        Self {
-            mode: EditMode::EditNodes,
-            craft,
-            ui: Self::default_editor_ui(),
-            selected_nodes: Vec::new(),
-        }
-    }
 
-    pub fn update(&mut self) -> bool {
-        let mut redraw = false;
-
-        /// Swaps build mode
+        // Swaps build mode
         if is_key_pressed(KeyCode::M) {
             self.mode = self.mode.swap();
             self.selected_nodes = Vec::new();
@@ -119,13 +103,28 @@ impl Editor {
         //     }
         // }
 
-        redraw
+        super::ApplicationMessage::None
     }
 
-    pub fn draw(&self) {
+    fn draw(&self) {
         clear_background(WHITE);
         self.craft.draw(&self.selected_nodes);
-        self.ui.draw();
+    }
+}
+impl Editor {
+    pub fn new() -> Self {
+        Self {
+            mode: EditMode::EditNodes,
+            craft: Craft::new(),
+            selected_nodes: Vec::new(),
+        }
+    }
+    pub fn edit_craft(craft: Craft) -> Self {
+        Self {
+            mode: EditMode::EditNodes,
+            craft,
+            selected_nodes: Vec::new(),
+        }
     }
 
     fn add_node(&mut self, pos: Vec2, node_type: NodeType) {
@@ -167,36 +166,5 @@ impl Editor {
 
     pub fn close(self) -> Craft {
         self.craft
-    }
-
-    fn default_editor_ui() -> UI {
-        UI {
-            panels: vec![Panel {
-                hidden: false,
-                position: UIUnits::Scaled { x: 0.0, y: 0.0 },
-                size: UIUnits::Scaled { x: 0.3, y: 1.0 },
-                root_component: Component::Column {
-                    components: vec![Component::Header1 {
-                        text: String::from("Title goes here"),
-                    }],
-                },
-                style: None,
-            }],
-            style: Style {
-                font: (),
-                background_color: (),
-                border_color: (),
-                padding: (),
-                header1: (),
-                header2: (),
-                header3: (),
-                paragraph: (),
-                number_input: (),
-                text_input: (),
-                button: (),
-                number_display: (),
-                text_display: (),
-            },
-        }
     }
 }
