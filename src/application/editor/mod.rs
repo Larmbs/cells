@@ -1,10 +1,10 @@
-use crate::application::{Scene, AppMessage};
+use crate::application::{AppMessage, Scene};
 
 use super::craft::components::*;
 use super::craft::*;
-use macroquad::color::WHITE;
 use macroquad::prelude::{
-    KeyCode, MouseButton, Vec2, is_key_pressed, is_mouse_button_pressed, mouse_position,
+    Color, GREEN, KeyCode, MouseButton, Vec2, WHITE, is_key_pressed, is_mouse_button_pressed,
+    mouse_position,
 };
 use macroquad::window::clear_background;
 
@@ -26,12 +26,13 @@ pub struct Editor {
     mode: EditMode,
     craft: Craft,
     selected_nodes: Vec<usize>,
+    picked_color: Color,
 }
 impl Scene for Editor {
     fn update(&mut self) -> AppMessage {
         // Changes scene to Simulate
         if is_key_pressed(KeyCode::Space) {
-            return AppMessage::OpenSimulation(self.craft.clone())
+            return AppMessage::OpenSimulation(self.craft.clone());
         }
 
         // Swaps build mode
@@ -56,6 +57,7 @@ impl Scene for Editor {
                                     length: (self.craft.nodes[self.selected_nodes[0]].pos
                                         - self.craft.nodes[self.selected_nodes[1]].pos)
                                         .length(),
+                                    strength: 0.0,
                                 },
                             );
                             self.selected_nodes.clear();
@@ -117,6 +119,7 @@ impl Editor {
             mode: EditMode::EditNodes,
             craft: Craft::new(),
             selected_nodes: Vec::new(),
+            picked_color: GREEN,
         }
     }
     pub fn edit_craft(craft: Craft) -> Self {
@@ -124,19 +127,33 @@ impl Editor {
             mode: EditMode::EditNodes,
             craft,
             selected_nodes: Vec::new(),
+            picked_color: GREEN,
         }
     }
 
     fn add_node(&mut self, pos: Vec2, node_type: NodeType) {
-        self.craft.nodes.push(Node::new(pos, node_type))
+        self.craft.nodes.push(Node {
+            pos,
+            prev_pos: pos.clone(),
+            node_type,
+        })
     }
 
-    fn add_rod(&mut self, a: usize, b: usize, rod_type: RodType) {
-        self.craft.rods.push(Rod::new(a, b, rod_type));
+    fn add_rod(&mut self, node_a: usize, node_b: usize, rod_type: RodType) {
+        self.craft.rods.push(Rod {
+            node_a,
+            node_b,
+            rod_type,
+        });
     }
 
-    fn add_triangle(&mut self, a: usize, b: usize, c: usize) {
-        self.craft.triangles.push(Triangle::new(a, b, c));
+    fn add_triangle(&mut self, node_a: usize, node_b: usize, node_c: usize) {
+        self.craft.triangles.push(Triangle {
+            node_a,
+            node_b,
+            node_c,
+            color: self.picked_color,
+        });
     }
 
     fn remove_node(&mut self, index: usize) {

@@ -1,6 +1,6 @@
 use macroquad::prelude::{BLUE, KeyCode, draw_rectangle, is_key_pressed};
 
-use crate::application::{menu, AppMessage, Scene};
+use crate::application::{AppMessage, Scene, menu};
 
 pub struct Menu {}
 impl Scene for Menu {
@@ -17,6 +17,6 @@ impl Scene for Menu {
 }
 impl Menu {
     pub fn new() -> Self {
-        Self{}
+        Self {}
     }
 }

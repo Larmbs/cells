@@ -1,6 +1,6 @@
 mod application;
 
-#[macroquad::main("Advanced Physics Builder")]
+#[macroquad::main("VehicleToolkit")]
 async fn main() {
     let mut app = application::Application::new();
     app.run().await;

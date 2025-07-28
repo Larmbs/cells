@@ -1,18 +1,24 @@
-//! Represent what a craft is, different components and functions that are customizable in the craft
+//! Vehicle Toolkit
+
+use std::fs::File;
+use std::io;
+use std::path::PathBuf;
 
 use macroquad::prelude::*;
+use serde::{Deserialize, Serialize};
 
 pub mod components;
 use components::*;
 
 /// A craft within a world represents by and organized structure of rods interlocked using nodes
-#[derive(Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Craft {
     pub nodes: Vec<Node>,
     pub rods: Vec<Rod>,
     pub triangles: Vec<Triangle>,
 }
 impl Craft {
+    /// Creates a blank craft
     pub fn new() -> Self {
         Self {
             nodes: vec![],
@@ -54,7 +60,35 @@ impl Craft {
             draw_circle(node.pos.x, node.pos.y, 6.0, color);
         }
 
-        // Draw floor
-        draw_line(0.0, 600.0, screen_width(), 600.0, 2.0, GREEN);
+        // Draw triangles
+        for tri in &self.triangles {
+            draw_triangle(
+                self.nodes[tri.node_a].pos,
+                self.nodes[tri.node_b].pos,
+                self.nodes[tri.node_c].pos,
+                tri.color,
+            );
+        }
+    }
+}
+
+impl Craft {
+    /// Loads craft from a JSON file
+    pub fn load(file_path: PathBuf) -> io::Result<Craft> {
+        let file = File::open(file_path)?;
+        serde_json::from_reader(file).map_err(|e| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "JSON Craft format seems to be invalid",
+            )
+        })
+    }
+
+    /// Saves craft into JSON file
+    pub fn save(&self, file_path: PathBuf) -> io::Result<()> {
+        let file = File::open(file_path)?;
+        serde_json::to_writer(file, self)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, "Error saving Craft"));
+        io::Result::Ok(())
     }
 }

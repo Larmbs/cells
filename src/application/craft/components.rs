@@ -1,73 +1,108 @@
-use macroquad::prelude::Vec2;
+//! Vehicle Toolkit
+//! 
+//! This file represents the components the make up a craft
+//! 
+//! Nodes: 
+//! 
+//! Rods: 
+//!     This part is the bread and butter of engineering any craft.
+//!     It connects all the nodes, and parts together making up the skeleton of every craft
+//!     Each rod has settings to change their behavior like their stretch and strength
+//! 
+//! Parts:
+//!     These are special components on craft that have a special functionality
+//!     Each part comes with attachment points and some means of activation, 
+//!     so you can strap on engine or wheels to your vehicle to bring in functionality
+//! 
+//! Triangles:
+//!     Quick and easy way of filling in panels on a craft to give it a smoother design
+//! 
+use macroquad::prelude::{Vec2, Color};
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "Vec2")]
+struct Vec2Def {
+    x: f32,
+    y: f32,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "Color")]
+struct ColorDef {
+    r: f32,
+    g: f32,
+    b: f32,
+    a: f32,
+}
 
 /* Represents a node which other things can connect to */
-#[derive(Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Node {
+    #[serde(with = "Vec2Def")]
     pub pos: Vec2,
+    #[serde(with = "Vec2Def")]
     pub prev_pos: Vec2,
     pub node_type: NodeType,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum NodeType {
     Fixed,
     Joint,
 }
-impl Node {
-    pub fn new(pos: Vec2, node_type: NodeType) -> Self {
-        Self {
-            pos,
-            prev_pos: pos,
-            node_type,
-        }
-    }
-}
 
 /* Represents a connection between nodes */
-#[derive(Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Rod {
     pub node_a: usize,
     pub node_b: usize,
     pub rod_type: RodType,
 }
-#[derive(Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum RodType {
     SOLID {
         length: f32,
+        strength: f32,
     },
     ROPE {
         length: f32,
+        strength: f32,
     },
     SPRING {},
     PISTON {
         min_length: f32,
         max_length: f32,
         length: f32,
+        strength: f32,
     },
 }
-impl Rod {
-    pub fn new(node_a: usize, node_b: usize, rod_type: RodType) -> Self {
-        Self {
-            node_a,
-            node_b,
-            rod_type,
-        }
-    }
+
+/* Part */
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
+pub enum Part {
+    Wheel {
+        #[serde(with = "Vec2Def")]
+        pos: Vec2,
+        #[serde(with = "Vec2Def")]
+        prev_pos: Vec2,
+        wheel_radius: f32,
+    },
+    JetEngine {
+        #[serde(with = "Vec2Def")]
+        pos: Vec2,
+        #[serde(with = "Vec2Def")]
+        prev_pos: Vec2,
+        angle: f32,
+    },
 }
 
 /* Represents a triangle between three nodes.*/
-#[derive(Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Triangle {
-    node_a: usize,
-    node_b: usize,
-    node_c: usize,
-}
-impl Triangle {
-    pub fn new(node_a: usize, node_b: usize, node_c: usize) -> Self {
-        Self {
-            node_a,
-            node_b,
-            node_c,
-        }
-    }
+    pub node_a: usize,
+    pub node_b: usize,
+    pub node_c: usize,
+    #[serde(with = "ColorDef")]
+    pub color: Color,
 }

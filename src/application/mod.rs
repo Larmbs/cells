@@ -5,8 +5,8 @@ pub mod craft;
 pub mod ui;
 
 /* Scenes */
-mod menu;
 mod editor;
+mod menu;
 mod simulation;
 
 pub trait Scene {
@@ -18,7 +18,7 @@ pub enum AppMessage {
     Quit,
     OpenMenu,
     OpenEditor(Option<Craft>),
-    OpenSimulation(Craft)
+    OpenSimulation(Craft),
 }
 
 pub struct Application {
@@ -35,19 +35,17 @@ impl Application {
             match self.mode.update() {
                 AppMessage::None => (),
                 AppMessage::Quit => break,
-                AppMessage::OpenMenu => {
-                    self.mode = Box::new(menu::Menu::new())
-                },
+                AppMessage::OpenMenu => self.mode = Box::new(menu::Menu::new()),
                 AppMessage::OpenEditor(craft) => {
                     if let Some(craft) = craft {
                         self.mode = Box::new(editor::Editor::edit_craft(craft))
                     } else {
                         self.mode = Box::new(editor::Editor::new())
                     }
-                },
+                }
                 AppMessage::OpenSimulation(craft) => {
                     self.mode = Box::new(simulation::Simulation::new(craft))
-                },
+                }
             }
 
             self.mode.draw();

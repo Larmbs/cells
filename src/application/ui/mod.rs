@@ -6,9 +6,7 @@ use units::UiUnits;
 pub struct Ui {
     ui_components: Vec<UiComponent>,
 }
-impl Ui {
-    
-}
+impl Ui {}
 
 struct UiComponent {
     position: UiUnits,

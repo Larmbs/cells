@@ -6,7 +6,7 @@ use super::craft::components::*;
 use super::craft::*;
 use macroquad::{
     color::WHITE,
-    prelude::{Vec2, get_time, is_key_pressed, KeyCode},
+    prelude::{KeyCode, Vec2, get_time, is_key_pressed, GREEN, screen_width, draw_line},
     time::get_frame_time,
     window::clear_background,
 };
@@ -22,7 +22,7 @@ impl Scene for Simulation {
     fn update(&mut self) -> AppMessage {
         // Changes scene to Editor
         if is_key_pressed(KeyCode::Space) {
-            return AppMessage::OpenEditor(Some(self.original_craft.clone()))
+            return AppMessage::OpenEditor(Some(self.original_craft.clone()));
         }
 
         let dt = get_frame_time() as f32;
@@ -59,19 +59,19 @@ impl Scene for Simulation {
                 let dir = delta / dist;
 
                 match rod.rod_type {
-                    RodType::SOLID { length } => {
+                    RodType::SOLID { length , ..} => {
                         let diff = dist - length;
                         let correction = dir * (diff * 0.5);
                         self.move_nodes(a, b, correction);
                     }
-                    RodType::ROPE { length } => {
+                    RodType::ROPE { length, .. } => {
                         if dist > length {
                             let diff = dist - length;
                             let correction = dir * (diff * 0.5);
                             self.move_nodes(a, b, correction);
                         }
                     }
-                    RodType::SPRING {} => {
+                    RodType::SPRING {..} => {
                         // Simple spring: pull or push nodes toward rest length
                         let rest_length = 100.0;
                         let k = 0.2;
@@ -82,6 +82,7 @@ impl Scene for Simulation {
                         min_length,
                         max_length,
                         length,
+                        ..
                     } => {
                         // Dynamic length, could be user-controlled or animated
                         // For now, just placeholder behavior
@@ -99,6 +100,7 @@ impl Scene for Simulation {
     fn draw(&self) {
         clear_background(WHITE);
         self.craft.draw(&Vec::new());
+        draw_line(0.0, 600.0, screen_width(), 600.0, 2.0, GREEN);
     }
 }
 impl Simulation {
