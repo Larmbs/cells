@@ -1,4 +1,4 @@
-use macroquad::prelude::{KeyCode, MouseButton, is_key_pressed};
+use macroquad::prelude::{KeyCode, is_key_pressed};
 use std::collections::HashMap;
 
 #[derive(Eq, Hash, PartialEq)]
@@ -27,14 +27,6 @@ pub struct KeyBinds {
     action_to_key: HashMap<Action, KeyCode>,
 }
 impl KeyBinds {
-    pub fn new() -> Self {
-        Self {
-            action_to_key: HashMap::new(),
-        }
-    }
-    pub fn get_key(&self, action: Action) -> Option<&KeyCode> {
-        self.action_to_key.get(&action)
-    }
     pub fn is_pressed(&self, action: Action) -> bool {
         if let Some(key) = self.action_to_key.get(&action) {
             is_key_pressed(*key)

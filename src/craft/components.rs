@@ -1,24 +1,24 @@
 //! Vehicle Toolkit
-//! 
+//!
 //! This file represents the components the make up a craft
-//! 
-//! Nodes: 
-//! 
-//! Rods: 
+//!
+//! Nodes:
+//!
+//! Rods:
 //!     This part is the bread and butter of engineering any craft.
 //!     It connects all the nodes, and parts together making up the skeleton of every craft
 //!     Each rod has settings to change their behavior like their stretch and strength
-//! 
+//!
 //! Parts:
 //!     These are special components on craft that have a special functionality
-//!     Each part comes with attachment points and some means of activation, 
+//!     Each part comes with attachment points and some means of activation,
 //!     so you can strap on engine or wheels to your vehicle to bring in functionality
-//! 
+//!
 //! Triangles:
 //!     Quick and easy way of filling in panels on a craft to give it a smoother design
-//! 
-use macroquad::prelude::{Vec2, Color};
-use serde::{Serialize, Deserialize};
+//!
+use macroquad::prelude::{Color, Vec2};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "Vec2")]
@@ -69,10 +69,7 @@ pub enum RodType {
     SOLID,
     ROPE,
     SPRING,
-    PISTON {
-        min_length: f32,
-        max_length: f32,
-    },
+    PISTON { min_length: f32, max_length: f32 },
 }
 impl Default for RodType {
     fn default() -> Self {

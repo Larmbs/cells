@@ -1,6 +1,7 @@
 use macroquad::prelude::{BLUE, KeyCode, draw_rectangle, is_key_pressed};
 
-use crate::application::{menu, settings::KeyBinds, AppMessage, Scene};
+use super::Scene;
+use crate::{AppMessage, settings::KeyBinds};
 
 pub struct Menu {}
 impl Scene for Menu {

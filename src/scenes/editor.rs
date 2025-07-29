@@ -1,17 +1,13 @@
-use crate::application::{
-    AppMessage, Scene,
+use super::Scene;
+use crate::craft::{components::*, *};
+use crate::{
+    AppMessage,
     settings::{Action, KeyBinds},
 };
 
-use super::craft::components::*;
-use super::craft::*;
-use macroquad::window::clear_background;
-use macroquad::{
-    color::SKYBLUE,
-    prelude::{
-        Color, GREEN, KeyCode, MouseButton, Vec2, WHITE, draw_circle, is_key_pressed,
-        is_mouse_button_pressed, mouse_position,
-    },
+use macroquad::prelude::{
+    Color, GREEN, MouseButton, SKYBLUE, Vec2, WHITE, clear_background, draw_circle,
+    is_mouse_button_pressed, mouse_position,
 };
 
 const THRESHOLD: f32 = 50.0;

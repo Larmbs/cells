@@ -1,16 +1,17 @@
-mod enviroment;
-
-use crate::application::{settings::{KeyBinds, Action}, AppMessage, Scene};
-
-use super::craft::components::*;
-use super::craft::*;
-use macroquad::{
-    color::WHITE,
-    prelude::{KeyCode, Vec2, get_time, is_key_pressed, GREEN, screen_width, draw_line},
-    time::get_frame_time,
-    window::clear_background,
+//! Vehicle Toolkit
+//! Simulation Scene
+use macroquad::prelude::{
+    GREEN, Vec2, WHITE, clear_background, draw_line, get_frame_time, get_time, screen_width,
 };
 
+use super::Scene;
+use crate::{
+    AppMessage,
+    settings::{Action, KeyBinds},
+};
+
+use crate::craft::components::*;
+use crate::craft::*;
 
 const FLOOR: f32 = 600.0;
 
@@ -65,14 +66,14 @@ impl Scene for Simulation {
                         let correction = dir * (diff * 0.5);
                         self.move_nodes(a, b, correction);
                     }
-                    RodType::ROPE  => {
+                    RodType::ROPE => {
                         if dist > rod.length {
                             let diff = dist - rod.length;
                             let correction = dir * (diff * 0.5);
                             self.move_nodes(a, b, correction);
                         }
                     }
-                    RodType::SPRING {..} => {
+                    RodType::SPRING { .. } => {
                         // Simple spring: pull or push nodes toward rest length
                         let rest_length = 100.0;
                         let k = 0.2;
