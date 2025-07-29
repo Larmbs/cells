@@ -45,11 +45,15 @@ pub struct Node {
     pub prev_pos: Vec2,
     pub node_type: NodeType,
 }
-
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum NodeType {
     Fixed,
     Joint,
+}
+impl Default for NodeType {
+    fn default() -> Self {
+        NodeType::Joint
+    }
 }
 
 /* Represents a connection between nodes */
@@ -57,25 +61,23 @@ pub enum NodeType {
 pub struct Rod {
     pub node_a: usize,
     pub node_b: usize,
+    pub length: f32,
     pub rod_type: RodType,
 }
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum RodType {
-    SOLID {
-        length: f32,
-        strength: f32,
-    },
-    ROPE {
-        length: f32,
-        strength: f32,
-    },
-    SPRING {},
+    SOLID,
+    ROPE,
+    SPRING,
     PISTON {
         min_length: f32,
         max_length: f32,
-        length: f32,
-        strength: f32,
     },
+}
+impl Default for RodType {
+    fn default() -> Self {
+        Self::SOLID
+    }
 }
 
 /* Part */

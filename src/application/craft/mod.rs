@@ -1,8 +1,8 @@
 //! Vehicle Toolkit
 
-use std::fs::File;
 use std::io;
 use std::path::PathBuf;
+use std::{collections::HashSet, fs::File};
 
 use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,23 @@ impl Craft {
         }
     }
 
-    pub fn draw(&self, highlighted_nodes: &Vec<usize>) {
+    /// Removes duplicate parts, tris, rods, and any unused nodes
+    pub fn clean_craft(&mut self) {
+        // Removing duplicate rods
+        let mut seen = HashSet::new();
+        self.rods.retain(|p| seen.insert([p.node_a, p.node_b]));
+
+        // Removing duplicate triangles
+        let mut seen = HashSet::new();
+        self.triangles
+            .retain(|p| seen.insert([p.node_a, p.node_b, p.node_c]));
+    }
+
+    pub fn node_distance(&self, node_a: usize, node_b: usize) -> f32 {
+        self.nodes[node_a].pos.distance(self.nodes[node_b].pos)
+    }
+
+    pub fn draw(&self) {
         // Draw rods
         for rod in &self.rods {
             let (a, b) = (rod.node_a, rod.node_b);
@@ -49,14 +65,11 @@ impl Craft {
 
         // Draw nodes
         for (node, i) in self.nodes.iter().zip(0..self.nodes.len()) {
-            let color = if highlighted_nodes.contains(&i) {
-                SKYBLUE
-            } else {
-                match node.node_type {
-                    NodeType::Fixed => GREEN,
-                    NodeType::Joint => BLACK,
-                }
+            let color = match node.node_type {
+                NodeType::Fixed => GREEN,
+                NodeType::Joint => BLACK,
             };
+
             draw_circle(node.pos.x, node.pos.y, 6.0, color);
         }
 

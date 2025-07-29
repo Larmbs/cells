@@ -1,10 +1,10 @@
 use macroquad::prelude::{BLUE, KeyCode, draw_rectangle, is_key_pressed};
 
-use crate::application::{AppMessage, Scene, menu};
+use crate::application::{menu, settings::KeyBinds, AppMessage, Scene};
 
 pub struct Menu {}
 impl Scene for Menu {
-    fn update(&mut self) -> AppMessage {
+    fn update(&mut self, key_binds: &KeyBinds) -> AppMessage {
         if is_key_pressed(KeyCode::Space) {
             return AppMessage::OpenEditor(None);
         }

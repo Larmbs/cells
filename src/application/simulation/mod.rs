@@ -1,6 +1,6 @@
 mod enviroment;
 
-use crate::application::{AppMessage, Scene};
+use crate::application::{settings::{KeyBinds, Action}, AppMessage, Scene};
 
 use super::craft::components::*;
 use super::craft::*;
@@ -11,6 +11,7 @@ use macroquad::{
     window::clear_background,
 };
 
+
 const FLOOR: f32 = 600.0;
 
 pub struct Simulation {
@@ -19,9 +20,9 @@ pub struct Simulation {
     craft: Craft,
 }
 impl Scene for Simulation {
-    fn update(&mut self) -> AppMessage {
+    fn update(&mut self, key_binds: &KeyBinds) -> AppMessage {
         // Changes scene to Editor
-        if is_key_pressed(KeyCode::Space) {
+        if key_binds.is_pressed(Action::SwitchScene) {
             return AppMessage::OpenEditor(Some(self.original_craft.clone()));
         }
 
@@ -59,14 +60,14 @@ impl Scene for Simulation {
                 let dir = delta / dist;
 
                 match rod.rod_type {
-                    RodType::SOLID { length , ..} => {
-                        let diff = dist - length;
+                    RodType::SOLID => {
+                        let diff = dist - rod.length;
                         let correction = dir * (diff * 0.5);
                         self.move_nodes(a, b, correction);
                     }
-                    RodType::ROPE { length, .. } => {
-                        if dist > length {
-                            let diff = dist - length;
+                    RodType::ROPE  => {
+                        if dist > rod.length {
+                            let diff = dist - rod.length;
                             let correction = dir * (diff * 0.5);
                             self.move_nodes(a, b, correction);
                         }
@@ -81,7 +82,6 @@ impl Scene for Simulation {
                     RodType::PISTON {
                         min_length,
                         max_length,
-                        length,
                         ..
                     } => {
                         // Dynamic length, could be user-controlled or animated
@@ -99,7 +99,7 @@ impl Scene for Simulation {
 
     fn draw(&self) {
         clear_background(WHITE);
-        self.craft.draw(&Vec::new());
+        self.craft.draw();
         draw_line(0.0, 600.0, screen_width(), 600.0, 2.0, GREEN);
     }
 }

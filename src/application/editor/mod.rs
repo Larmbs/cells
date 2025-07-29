@@ -1,12 +1,20 @@
-use crate::application::{AppMessage, Scene};
+use crate::application::{
+    AppMessage, Scene,
+    settings::{Action, KeyBinds},
+};
 
 use super::craft::components::*;
 use super::craft::*;
-use macroquad::prelude::{
-    Color, GREEN, KeyCode, MouseButton, Vec2, WHITE, is_key_pressed, is_mouse_button_pressed,
-    mouse_position,
-};
 use macroquad::window::clear_background;
+use macroquad::{
+    color::SKYBLUE,
+    prelude::{
+        Color, GREEN, KeyCode, MouseButton, Vec2, WHITE, draw_circle, is_key_pressed,
+        is_mouse_button_pressed, mouse_position,
+    },
+};
+
+const THRESHOLD: f32 = 50.0;
 
 enum EditMode {
     EditNodes,
@@ -25,92 +33,82 @@ impl EditMode {
 pub struct Editor {
     mode: EditMode,
     craft: Craft,
-    selected_nodes: Vec<usize>,
+    selected_points: Vec<Vec2>,
     picked_color: Color,
 }
 impl Scene for Editor {
-    fn update(&mut self) -> AppMessage {
+    fn update(&mut self, key_binds: &KeyBinds) -> AppMessage {
         // Changes scene to Simulate
-        if is_key_pressed(KeyCode::Space) {
+        if key_binds.is_pressed(Action::SwitchScene) {
             return AppMessage::OpenSimulation(self.craft.clone());
         }
 
-        // Swaps build mode
-        if is_key_pressed(KeyCode::M) {
-            self.mode = self.mode.swap();
-            self.selected_nodes = Vec::new();
+        if is_mouse_button_pressed(MouseButton::Left) {
+            self.selected_points.push(
+                if let Some(id) = self.find_closest_node(mouse_position().into(), THRESHOLD) {
+                    self.craft.nodes[id].pos.clone()
+                } else {
+                    mouse_position().into()
+                },
+            );
+        }
+        if key_binds.is_pressed(Action::ClearPoints) {
+            self.selected_points.clear();
         }
 
-        /// Place
-        if is_mouse_button_pressed(MouseButton::Left) {
-            match self.mode {
-                EditMode::EditNodes => self.add_node(mouse_position().into(), NodeType::Joint),
-                EditMode::EditRods => {
-                    let selected_node = self.find_closest_node(mouse_position().into(), 25.0);
-                    if let Some(node_id) = selected_node {
-                        self.selected_nodes.push(node_id);
-                        if self.selected_nodes.len() == 2 {
-                            self.add_rod(
-                                self.selected_nodes[0],
-                                self.selected_nodes[1],
-                                RodType::SOLID {
-                                    length: (self.craft.nodes[self.selected_nodes[0]].pos
-                                        - self.craft.nodes[self.selected_nodes[1]].pos)
-                                        .length(),
-                                    strength: 0.0,
-                                },
-                            );
-                            self.selected_nodes.clear();
-                        }
-                    } else {
-                        self.selected_nodes.clear();
-                    }
-                }
-                EditMode::EditTriangles => {
-                    let selected_node = self.find_closest_node(mouse_position().into(), 25.0);
-                    if let Some(node_id) = selected_node {
-                        self.selected_nodes.push(node_id);
-                        if self.selected_nodes.len() == 3 {
-                            self.add_triangle(
-                                self.selected_nodes[0],
-                                self.selected_nodes[1],
-                                self.selected_nodes[2],
-                            );
-                            self.selected_nodes.clear();
-                        }
-                    } else {
-                        self.selected_nodes.clear();
-                    }
+        if key_binds.is_pressed(Action::PlaceNodes) {
+            for i in 0..self.selected_points.len() {
+                if self
+                    .find_closest_node(self.selected_points[i], THRESHOLD)
+                    .is_none()
+                {
+                    self.add_node(self.selected_points[i], NodeType::default());
                 }
             }
+            self.selected_points.clear();
         }
 
-        // /// Delete
-        // if is_mouse_button_pressed(MouseButton::Right) {
-        //     if let Some(idx) = find_closest_node(&sim.nodes, mouse, 15.0) {
-        //         if let Some(prev) = selected_node {
-        //             if prev != idx {
-        //                 sim.add_rod(
-        //                     prev,
-        //                     idx,
-        //                     RodType::SOLID {
-        //                         length: (sim.nodes[prev].pos - sim.nodes[idx].pos).length(),
-        //                     },
-        //                 );
-        //             }
-        //             selected_node = None;
-        //         } else {
-        //             selected_node = Some(idx);
-        //         }
-        //     }
-        // }
+        if key_binds.is_pressed(Action::PlaceRods) {
+            for i in 1..self.selected_points.len() {
+                let node_a = if let Some(id) =
+                    self.find_closest_node(self.selected_points[i - 1], THRESHOLD)
+                {
+                    id
+                } else {
+                    self.add_node(self.selected_points[i - 1], NodeType::default())
+                };
+
+                let node_b =
+                    if let Some(id) = self.find_closest_node(self.selected_points[i], THRESHOLD) {
+                        id
+                    } else {
+                        self.add_node(self.selected_points[i], NodeType::default())
+                    };
+
+                self.add_rod(
+                    node_a,
+                    node_b,
+                    self.craft.node_distance(node_a, node_b),
+                    RodType::default(),
+                );
+            }
+            self.selected_points.clear();
+        }
+
+        if key_binds.is_pressed(Action::PlaceTriangles) {
+            //let mut last = None;
+            self.selected_points.clear();
+        }
 
         super::AppMessage::None
     }
 
     fn draw(&self) {
         clear_background(WHITE);
-        self.craft.draw(&self.selected_nodes);
+        self.craft.draw();
+        for point in &self.selected_points {
+            draw_circle(point.x, point.y, 6.0, SKYBLUE);
+        }
     }
 }
 impl Editor {
@@ -118,7 +116,7 @@ impl Editor {
         Self {
             mode: EditMode::EditNodes,
             craft: Craft::new(),
-            selected_nodes: Vec::new(),
+            selected_points: Vec::new(),
             picked_color: GREEN,
         }
     }
@@ -126,23 +124,25 @@ impl Editor {
         Self {
             mode: EditMode::EditNodes,
             craft,
-            selected_nodes: Vec::new(),
+            selected_points: Vec::new(),
             picked_color: GREEN,
         }
     }
 
-    fn add_node(&mut self, pos: Vec2, node_type: NodeType) {
+    fn add_node(&mut self, pos: Vec2, node_type: NodeType) -> usize {
         self.craft.nodes.push(Node {
             pos,
             prev_pos: pos.clone(),
             node_type,
-        })
+        });
+        self.craft.nodes.len() - 1
     }
 
-    fn add_rod(&mut self, node_a: usize, node_b: usize, rod_type: RodType) {
+    fn add_rod(&mut self, node_a: usize, node_b: usize, length: f32, rod_type: RodType) {
         self.craft.rods.push(Rod {
             node_a,
             node_b,
+            length,
             rod_type,
         });
     }

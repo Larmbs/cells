@@ -1,18 +1,34 @@
+//! Vehicle Toolkit
+//! 
+//! This Module defines the most basic functionality of an app,
+//! it defines this apps basic control structure controlling
+//! the swapping between windows / scenes.
 #![allow(unused)]
 
 use crate::application::craft::Craft;
+
+/* Common modules */
 pub mod craft;
 pub mod ui;
+pub mod settings;
 
 /* Scenes */
 mod editor;
 mod menu;
 mod simulation;
 
+
+use settings::KeyBinds;
+use macroquad::prelude::next_frame;
+
+/// Definition of a basic window for the program,
+/// The application manages switching between these scenes.
 pub trait Scene {
-    fn update(&mut self) -> AppMessage;
+    fn update(&mut self, key_binds: &KeyBinds) -> AppMessage;
     fn draw(&self);
 }
+/// These are messages that are passed from the scene to the application 
+/// To execute some sort of action that it has no ability too at its level
 pub enum AppMessage {
     None,
     Quit,
@@ -23,16 +39,19 @@ pub enum AppMessage {
 
 pub struct Application {
     mode: Box<dyn Scene>,
+    key_binds: KeyBinds
 }
 impl Application {
     pub fn new() -> Self {
         Self {
             mode: Box::new(menu::Menu::new()),
+            key_binds: KeyBinds::default(),
         }
     }
     pub async fn run(&mut self) {
         loop {
-            match self.mode.update() {
+            // Update with message handling
+            match self.mode.update(&self.key_binds) {
                 AppMessage::None => (),
                 AppMessage::Quit => break,
                 AppMessage::OpenMenu => self.mode = Box::new(menu::Menu::new()),
@@ -48,8 +67,9 @@ impl Application {
                 }
             }
 
+            // Drawing to screen
             self.mode.draw();
-            macroquad::prelude::next_frame().await;
+            next_frame().await;
         }
     }
 }
