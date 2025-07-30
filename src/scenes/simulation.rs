@@ -31,9 +31,6 @@ impl Scene for Simulation {
 
         // Verlet integration
         for node in &mut self.craft.nodes {
-            if let NodeType::Fixed = node.node_type {
-                continue;
-            }
             let temp = node.pos;
             let velocity = node.pos - node.prev_pos;
             node.pos += velocity + self.gravity * dt * dt;
@@ -110,11 +107,8 @@ impl Simulation {
     }
 
     fn move_nodes(&mut self, a: usize, b: usize, correction: Vec2) {
-        if self.craft.nodes[a].node_type != NodeType::Fixed {
-            self.craft.nodes[a].pos += correction;
-        }
-        if self.craft.nodes[b].node_type != NodeType::Fixed {
-            self.craft.nodes[b].pos -= correction;
-        }
+        self.craft.nodes[a].pos += correction;
+
+        self.craft.nodes[b].pos -= correction;
     }
 }

@@ -8,7 +8,7 @@
 
 use super::{
     Craft,
-    components::{Node, NodeType, Rod, RodType},
+    components::{Node, Rod, RodType},
 };
 use macroquad::prelude::Vec2;
 use std::collections::HashSet;
@@ -104,11 +104,10 @@ impl CraftManager {
     }
 
     /* Adding components to craft */
-    pub fn add_node(&mut self, pos: Vec2, node_type: NodeType) -> usize {
+    pub fn add_node(&mut self, pos: Vec2) -> usize {
         self.c.nodes.push(Node {
             pos,
             prev_pos: pos,
-            node_type,
         });
         self.c.nodes.len() - 1
     }

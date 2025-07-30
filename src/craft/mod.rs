@@ -79,14 +79,6 @@ pub fn draw_craft(craft: &Craft) {
 
     // Draw nodes
     for node in &craft.nodes {
-        draw_circle(
-            node.pos.x,
-            node.pos.y,
-            6.0,
-            match node.node_type {
-                NodeType::Fixed => GREEN,
-                NodeType::Joint => BLACK,
-            },
-        );
+        draw_circle(node.pos.x, node.pos.y, 6.0, BLACK);
     }
 }

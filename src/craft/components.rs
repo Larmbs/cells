@@ -34,17 +34,6 @@ pub struct Node {
     pub pos: Vec2,
     #[serde(with = "Vec2Def")]
     pub prev_pos: Vec2,
-    pub node_type: NodeType,
-}
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
-pub enum NodeType {
-    Fixed,
-    Joint,
-}
-impl Default for NodeType {
-    fn default() -> Self {
-        NodeType::Joint
-    }
 }
 
 /* Represents a connection between nodes */

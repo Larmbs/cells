@@ -51,9 +51,8 @@ impl Scene for Editor {
         }
 
         if is_mouse_button_down(MouseButton::Left) {
-            if let Some(start) = self.drag_start {
+            if let Some(_) = self.drag_start {
                 self.drag_current = Some(mouse);
-                // You can optionally show a selection rectangle here
             }
         }
 
@@ -81,7 +80,7 @@ impl Scene for Editor {
                     Selected::Rod(id) => self.manager.rod_midpoint(*id),
                     Selected::Selected(_) => continue,
                 };
-                self.manager.add_node(pos, NodeType::default());
+                self.manager.add_node(pos);
             }
             self.selected_points.clear();
         }
@@ -121,22 +120,31 @@ impl Scene for Editor {
         draw_craft(&self.manager.c);
 
         for sel in &self.selected_points {
-            let pos = self.resolve_selected_point(&sel);
-            draw_circle(pos.x, pos.y, 6.0, SELECT_COLOR);
-            if let Selected::Rod(id) = sel {
-                let r = &self.manager.c.rods[*id];
-                let p1 = self.manager.c.nodes[r.node_a].pos;
-                let p2 = self.manager.c.nodes[r.node_b].pos;
+            match sel {
+                Selected::Rod(id) => {
+                    let r = &self.manager.c.rods[*id];
+                    let p1 = self.manager.c.nodes[r.node_a].pos;
+                    let p2 = self.manager.c.nodes[r.node_b].pos;
 
-                draw_line(p1.x, p1.y, p2.x, p2.y, 3.0, SELECT_COLOR);
+                    draw_line(p1.x, p1.y, p2.x, p2.y, 3.0, SELECT_COLOR);
+                }
+                _ => {
+                    let pos = self.resolve_selected_point(&sel);
+                    draw_circle(pos.x, pos.y, 6.0, SELECT_COLOR);
+                }
             }
         }
         if let (Some(start), Some(end)) = (self.drag_start, self.drag_current) {
             let top_left = start.min(end);
             let size = (start - end).abs();
-            draw_rectangle_lines(top_left.x, top_left.y, size.x, size.y, 1.0, GRAY);
-            draw_rectangle(top_left.x, top_left.y, size.x, size.y, SELECT_COLOR.with_alpha(0.5));
-
+            draw_rectangle_lines(top_left.x, top_left.y, size.x, size.y, 1.0, SELECT_COLOR);
+            draw_rectangle(
+                top_left.x,
+                top_left.y,
+                size.x,
+                size.y,
+                SELECT_COLOR.with_alpha(0.7),
+            );
         }
     }
 }
@@ -226,14 +234,14 @@ impl Editor {
     fn ensure_node(&mut self, index: usize) -> usize {
         match self.selected_points[index] {
             Selected::New(pos) => {
-                let id = self.manager.add_node(pos, NodeType::default());
+                let id = self.manager.add_node(pos);
                 self.selected_points[index] = Selected::Node(id);
                 id
             }
             Selected::Node(id) => id,
             Selected::Rod(id) => {
                 let pos = self.manager.rod_midpoint(id);
-                let node_id = self.manager.add_node(pos, NodeType::default());
+                let node_id = self.manager.add_node(pos);
                 self.selected_points[index] = Selected::Node(node_id);
                 node_id
             }
@@ -258,7 +266,7 @@ impl Editor {
         }
 
         // Select rods whose *midpoint* is inside the box
-        for (i, rod) in self.manager.c.rods.iter().enumerate() {
+        for (i, _) in self.manager.c.rods.iter().enumerate() {
             let mid = self.manager.rod_midpoint(i);
             if mid.x >= min.x && mid.x <= max.x && mid.y >= min.y && mid.y <= max.y {
                 self.selected_points.push(Selected::Rod(i));
