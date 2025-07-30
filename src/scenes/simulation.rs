@@ -10,7 +10,7 @@ use crate::{
     settings::{Action, KeyBinds},
 };
 
-use crate::craft::components::*;
+use crate::craft::{components::*, draw_craft};
 use crate::craft::*;
 
 const FLOOR: f32 = 600.0;
@@ -73,18 +73,14 @@ impl Scene for Simulation {
                             self.move_nodes(a, b, correction);
                         }
                     }
-                    RodType::SPRING { .. } => {
+                    RodType::SPRING => {
                         // Simple spring: pull or push nodes toward rest length
                         let rest_length = 100.0;
                         let k = 0.2;
                         let force = dir * (dist - rest_length) * k;
                         self.move_nodes(a, b, force);
                     }
-                    RodType::PISTON {
-                        min_length,
-                        max_length,
-                        ..
-                    } => {
+                    RodType::PISTON => {
                         // Dynamic length, could be user-controlled or animated
                         // For now, just placeholder behavior
                         let desired_length = 150.0 + 50.0 * (get_time() as f32).sin();
@@ -100,7 +96,7 @@ impl Scene for Simulation {
 
     fn draw(&self) {
         clear_background(WHITE);
-        self.craft.draw();
+        draw_craft(&self.craft);
         draw_line(0.0, 600.0, screen_width(), 600.0, 2.0, GREEN);
     }
 }

@@ -17,7 +17,7 @@
 //! Triangles:
 //!     Quick and easy way of filling in panels on a craft to give it a smoother design
 //!
-use macroquad::prelude::{Color, Vec2};
+use macroquad::prelude::Vec2;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -25,15 +25,6 @@ use serde::{Deserialize, Serialize};
 struct Vec2Def {
     x: f32,
     y: f32,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "Color")]
-struct ColorDef {
-    r: f32,
-    g: f32,
-    b: f32,
-    a: f32,
 }
 
 /* Represents a node which other things can connect to */
@@ -69,7 +60,7 @@ pub enum RodType {
     SOLID,
     ROPE,
     SPRING,
-    PISTON { min_length: f32, max_length: f32 },
+    PISTON,
 }
 impl Default for RodType {
     fn default() -> Self {
@@ -77,31 +68,31 @@ impl Default for RodType {
     }
 }
 
-/* Part */
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
-pub enum Part {
-    Wheel {
-        #[serde(with = "Vec2Def")]
-        pos: Vec2,
-        #[serde(with = "Vec2Def")]
-        prev_pos: Vec2,
-        wheel_radius: f32,
-    },
-    JetEngine {
-        #[serde(with = "Vec2Def")]
-        pos: Vec2,
-        #[serde(with = "Vec2Def")]
-        prev_pos: Vec2,
-        angle: f32,
-    },
-}
+// /* Part */
+// #[derive(Serialize, Deserialize, Clone, PartialEq)]
+// pub enum Part {
+//     Wheel {
+//         #[serde(with = "Vec2Def")]
+//         pos: Vec2,
+//         #[serde(with = "Vec2Def")]
+//         prev_pos: Vec2,
+//         wheel_radius: f32,
+//     },
+//     JetEngine {
+//         #[serde(with = "Vec2Def")]
+//         pos: Vec2,
+//         #[serde(with = "Vec2Def")]
+//         prev_pos: Vec2,
+//         angle: f32,
+//     },
+// }
 
-/* Represents a triangle between three nodes.*/
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
-pub struct Triangle {
-    pub node_a: usize,
-    pub node_b: usize,
-    pub node_c: usize,
-    #[serde(with = "ColorDef")]
-    pub color: Color,
-}
+// /* Represents a triangle between three nodes.*/
+// #[derive(Serialize, Deserialize, Clone, PartialEq)]
+// pub struct Triangle {
+//     pub node_a: usize,
+//     pub node_b: usize,
+//     pub node_c: usize,
+//     #[serde(with = "ColorDef")]
+//     pub color: Color,
+// }
