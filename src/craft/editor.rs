@@ -17,7 +17,7 @@ pub struct CraftManager {
     pub c: Craft,
 }
 impl CraftManager {
-    const THRESHOLD: f32 = 20.0;
+    const THRESHOLD: f32 = 50.0;
 
     /* Selecting craft components */
     pub fn select_nearest_node(&self, pos: Vec2) -> Option<usize> {
@@ -53,6 +53,7 @@ impl CraftManager {
                 }
             })
             .min_by(|a, b| {
+                println!("{:?}", a.1.total_cmp(&b.1));
                 a.1.total_cmp(&b.1)
             })
             .map(|(i, _)| i)
@@ -153,6 +154,78 @@ impl CraftManager {
             Some(())
         } else {
             None
+        }
+    }
+
+    /* Multi delete */
+    pub fn remove_nodes(&mut self, node_ids: &[usize]) {
+        let mut node_ids = node_ids.to_vec();
+        node_ids.sort_unstable();
+
+        let mut i = 0;
+        while i < node_ids.len() {
+            let id = node_ids[i];
+            let last = self.c.nodes.len() - 1;
+
+            if id >= self.c.nodes.len() {
+                i += 1;
+                continue;
+            }
+
+            // Remove rods connected to this node
+            self.c
+                .rods
+                .retain(|rod| rod.node_a != id && rod.node_b != id);
+
+            if id != last {
+                // Swap node
+                self.c.nodes.swap(id, last);
+
+                // Update rods to point to new index if needed
+                for rod in &mut self.c.rods {
+                    if rod.node_a == last {
+                        rod.node_a = id;
+                    }
+                    if rod.node_b == last {
+                        rod.node_b = id;
+                    }
+                }
+
+                // Update any upcoming deletions for the last index
+                if let Some(pos) = node_ids.iter().position(|&x| x == last) {
+                    node_ids[pos] = id;
+                }
+            }
+
+            self.c.nodes.pop();
+            i += 1;
+        }
+    }
+    pub fn remove_rods(&mut self, rod_ids: &[usize]) {
+        let mut rod_ids = rod_ids.to_vec();
+        // Sort ascending for consistent processing
+        rod_ids.sort_unstable();
+
+        let mut i = 0;
+        while i < rod_ids.len() {
+            let id = rod_ids[i];
+            let last = self.c.rods.len() - 1;
+
+            if id >= self.c.rods.len() {
+                i += 1;
+                continue;
+            }
+
+            if id != last {
+                // Find and update swapped index in our deletion list
+                if let Some(pos) = rod_ids.iter().position(|&x| x == last) {
+                    rod_ids[pos] = id;
+                }
+                self.c.rods.swap(id, last);
+            }
+
+            self.c.rods.pop();
+            i += 1;
         }
     }
 

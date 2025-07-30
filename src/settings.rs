@@ -21,6 +21,7 @@ pub enum Action {
     ZoomOut,
 
     SwitchScene,
+    NewCraft,
 }
 
 pub struct KeyBinds {
@@ -50,6 +51,8 @@ impl Default for KeyBinds {
         map.insert(Action::Delete, KeyCode::Backspace);
 
         map.insert(Action::SwitchScene, KeyCode::Space);
+
+        map.insert(Action::NewCraft, KeyCode::S);
 
         Self { action_to_key: map }
     }

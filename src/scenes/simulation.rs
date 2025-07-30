@@ -10,8 +10,8 @@ use crate::{
     settings::{Action, KeyBinds},
 };
 
-use crate::craft::{components::*, draw_craft};
 use crate::craft::*;
+use crate::craft::{components::*, draw_craft};
 
 const FLOOR: f32 = 600.0;
 
