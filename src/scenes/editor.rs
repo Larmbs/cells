@@ -1,6 +1,6 @@
 use super::Scene;
-use crate::craft::{components::*, draw_craft, Craft};
 use crate::craft::editor::CraftManager;
+use crate::craft::{Craft, components::*, draw_craft};
 use crate::{
     AppMessage,
     settings::{Action, KeyBinds},
@@ -10,16 +10,17 @@ use macroquad::prelude::*;
 
 const THRESHOLD: f32 = 20.0;
 
+#[derive(Debug)]
 enum Selected {
     New(Vec2),
     Node(usize),
     Rod(usize),
+    Selected(usize),
 }
 
 pub struct Editor {
     manager: CraftManager,
     selected_points: Vec<Selected>,
-    picked_color: Color,
 }
 
 impl Scene for Editor {
@@ -31,7 +32,8 @@ impl Scene for Editor {
         if is_mouse_button_pressed(MouseButton::Left) {
             let mouse = mouse_position().into();
             self.selected_points.push(
-                self.selected(mouse, THRESHOLD).unwrap_or(Selected::New(mouse))
+                self.selected(mouse, THRESHOLD)
+                    .unwrap_or(Selected::New(mouse)),
             );
         }
 
@@ -45,6 +47,7 @@ impl Scene for Editor {
                     Selected::New(pos) => *pos,
                     Selected::Node(id) => self.manager.c.nodes[*id].pos,
                     Selected::Rod(id) => self.manager.rod_midpoint(*id),
+                    Selected::Selected(_) => continue,
                 };
                 self.manager.add_node(pos, NodeType::default());
             }
@@ -73,6 +76,7 @@ impl Scene for Editor {
                 Selected::New(p) => *p,
                 Selected::Node(id) => self.manager.c.nodes[*id].pos,
                 Selected::Rod(id) => self.manager.rod_midpoint(*id),
+                Selected::Selected(_) => continue,
             };
             draw_circle(pos.x, pos.y, 6.0, SKYBLUE);
         }
@@ -84,7 +88,6 @@ impl Editor {
         Self {
             manager: CraftManager { c: Craft::new() },
             selected_points: Vec::new(),
-            picked_color: GREEN,
         }
     }
 
@@ -92,12 +95,7 @@ impl Editor {
         Self {
             manager: CraftManager { c: craft },
             selected_points: Vec::new(),
-            picked_color: GREEN,
         }
-    }
-
-    pub fn close(self) -> Craft {
-        self.manager.c
     }
 
     /// Converts any selected point into a concrete node (by creating one if needed)
@@ -115,23 +113,57 @@ impl Editor {
                 self.selected_points[index] = Selected::Node(node_id);
                 node_id
             }
+            Selected::Selected(id) => self.ensure_node(id),
+        }
+    }
+
+    fn resolve_selected_point(&self, sel: &Selected) -> Vec2 {
+        match sel {
+            Selected::New(pos) => *pos,
+            Selected::Node(id) => self.manager.c.nodes[*id].pos,
+            Selected::Rod(id) => self.manager.rod_midpoint(*id),
+            Selected::Selected(index) => {
+                if let Some(inner) = self.selected_points.get(*index) {
+                    self.resolve_selected_point(inner)
+                } else {
+                    Vec2::ZERO // fallback for invalid reference
+                }
+            }
         }
     }
 
     fn selected(&self, pos: Vec2, threshold: f32) -> Option<Selected> {
-        let node = self.manager.select_nearest_node(pos).map(|i| {
-            (Selected::Node(i), (self.manager.c.nodes[i].pos - pos).length())
-        });
+        let mut candidates: Vec<(Selected, f32)> = vec![];
 
-        let rod = self.manager.select_nearest_rod(pos).map(|i| {
-            let mid = self.manager.rod_midpoint(i);
-            (Selected::Rod(i), (mid - pos).length())
-        });
+        // Check nearest node
+        if let Some(i) = self.manager.select_nearest_node(pos) {
+            let dist = self.manager.c.nodes[i].pos.distance_squared(pos);
+            if dist < threshold * threshold {
+                candidates.push((Selected::Node(i), dist));
+            }
+        }
 
-        let mut candidates = vec![];
-        if let Some(n) = node { candidates.push(n); }
-        if let Some(r) = rod { candidates.push(r); }
+        // Check nearest rod
+        if let Some(i) = self.manager.select_nearest_rod(pos) {
+            let dist = self.manager.rod_midpoint(i).distance_squared(pos);
+            if dist < threshold * threshold {
+                candidates.push((Selected::Rod(i), dist));
+            }
+        }
 
-        candidates.into_iter().min_by(|a, b| a.1.total_cmp(&b.1)).map(|(sel, _)| sel)
+        // Check existing selected points
+        for (i, sel) in self.selected_points.iter().enumerate() {
+            let point_pos = self.resolve_selected_point(sel);
+            let dist = point_pos.distance_squared(pos);
+            if dist < threshold * threshold {
+                candidates.push((Selected::Selected(i), dist));
+            }
+        }
+
+        // Return the closest one
+        candidates
+            .into_iter()
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(sel, _)| sel)
     }
 }

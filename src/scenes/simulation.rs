@@ -117,8 +117,4 @@ impl Simulation {
             self.craft.nodes[b].pos -= correction;
         }
     }
-
-    pub fn close(self) -> Craft {
-        self.original_craft
-    }
 }

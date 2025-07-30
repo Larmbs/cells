@@ -26,7 +26,7 @@ impl CraftManager {
             .iter()
             .enumerate()
             .filter_map(|(i, node)| {
-                let dist = (node.pos - pos).length();
+                let dist = node.pos.distance_squared(pos);
                 if dist < Self::THRESHOLD {
                     Some((i, dist))
                 } else {
@@ -45,14 +45,16 @@ impl CraftManager {
                 let a = self.c.nodes[rod.node_a].pos;
                 let b = self.c.nodes[rod.node_b].pos;
                 let midpoint = (a + b) * 0.5;
-                let dist = (midpoint - pos).length();
-                if dist < Self::THRESHOLD {
+                let dist = midpoint.distance_squared(pos);
+                if dist < Self::THRESHOLD * Self::THRESHOLD {
                     Some((i, dist))
                 } else {
                     None
                 }
             })
-            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .min_by(|a, b| {
+                a.1.total_cmp(&b.1)
+            })
             .map(|(i, _)| i)
     }
 
@@ -90,11 +92,11 @@ impl CraftManager {
 
     /* Midpoint calculations */
     pub fn midpoint(&self, node_ids: &[usize]) -> Vec2 {
-        let mut sum = self.c.nodes[0].pos;
-        for id in 1..node_ids.len() {
-            sum += self.c.nodes[id].pos
-        }
-        sum / node_ids.len() as f32
+        node_ids
+            .iter()
+            .map(|&id| self.c.nodes[id].pos)
+            .sum::<Vec2>()
+            / node_ids.len() as f32
     }
     pub fn rod_midpoint(&self, rod_id: usize) -> Vec2 {
         self.midpoint(&[self.c.rods[rod_id].node_a, self.c.rods[rod_id].node_b])
