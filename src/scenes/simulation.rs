@@ -23,7 +23,7 @@ pub struct Simulation {
 impl Scene for Simulation {
     fn update(&mut self, key_binds: &KeyBinds) -> AppMessage {
         // Changes scene to Editor
-        if key_binds.is_pressed(Action::SwitchScene) {
+        if key_binds.is_key_pressed(Action::SwitchScene) {
             return AppMessage::OpenEditor(Some(self.original_craft.clone()));
         }
 

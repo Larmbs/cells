@@ -53,7 +53,6 @@ impl CraftManager {
                 }
             })
             .min_by(|a, b| {
-                println!("{:?}", a.1.total_cmp(&b.1));
                 a.1.total_cmp(&b.1)
             })
             .map(|(i, _)| i)

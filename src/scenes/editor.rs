@@ -9,13 +9,11 @@ use crate::{
 use macroquad::prelude::*;
 
 const THRESHOLD: f32 = 20.0;
-
 const SELECT_COLOR: Color = Color::from_hex(0x1ffdff);
-// struct Drag {
-//     start: Vec2,
-//     drag_offset: Vec2,
-// }
-#[derive(Debug, Clone)]
+const MAX_ZOOM: f32 = 20.0;
+const MIN_ZOOM: f32 = 0.1;
+
+#[derive(Debug, Clone, PartialEq)]
 enum Selected {
     New(Vec2),
     Node(usize),
@@ -28,31 +26,60 @@ pub struct Editor {
     selected_points: Vec<Selected>,
     drag_start: Option<Vec2>,
     drag_current: Option<Vec2>,
+    camera: Camera2D,
 }
 
 impl Scene for Editor {
     fn update(&mut self, key_binds: &KeyBinds) -> AppMessage {
-        let mouse = mouse_position().into();
-        if key_binds.is_pressed(Action::SwitchScene) {
+        let mouse_world = self.camera.screen_to_world(mouse_position().into());
+        if key_binds.is_key_pressed(Action::SwitchScene) {
             return AppMessage::OpenSimulation(self.manager.c.clone());
         }
-
-        if is_mouse_button_pressed(MouseButton::Left) {
-            self.selected_points.push(
-                self.selected(mouse, THRESHOLD)
-                    .unwrap_or((Selected::New(mouse), 0.0))
-                    .0,
-            );
+        // Cam Movement
+        {
+            if key_binds.is_key_down(Action::MoveCamLeft) {
+                self.camera.target.x -= 1.0;
+            }
+            if key_binds.is_key_down(Action::MoveCamRight) {
+                self.camera.target.x += 1.0;
+            }
+            if key_binds.is_key_down(Action::MoveCamUp) {
+                self.camera.target.y += 1.0;
+            }
+            if key_binds.is_key_down(Action::MoveCameDown) {
+                self.camera.target.y -= 1.0;
+            }
+            if key_binds.is_key_down(Action::ZoomIn) {
+                self.camera.zoom *= 1.1;
+            }
+            if key_binds.is_key_down(Action::ZoomOut) {
+                self.camera.zoom *= 0.9;
+            }
         }
 
         if is_mouse_button_pressed(MouseButton::Left) {
-            self.drag_start = Some(mouse);
-            self.drag_current = Some(mouse);
+            let selected = self
+                .selected(mouse_world, THRESHOLD)
+                .unwrap_or((Selected::New(mouse_world), 0.0))
+                .0;
+            if !self.selected_points.is_empty()
+                && selected == Selected::Selected(self.selected_points.len() - 1)
+            {
+                self.camera.target = self.resolve_selected_point(&selected);
+                println!("FF");
+            } else {
+                self.selected_points.push(selected);
+            }
+        }
+
+        if is_mouse_button_pressed(MouseButton::Left) {
+            self.drag_start = Some(mouse_world);
+            self.drag_current = Some(mouse_world);
         }
 
         if is_mouse_button_down(MouseButton::Left) {
             if let Some(_) = self.drag_start {
-                self.drag_current = Some(mouse);
+                self.drag_current = Some(mouse_world);
             }
         }
 
@@ -64,15 +91,15 @@ impl Scene for Editor {
             self.drag_current = None;
         }
 
-        if key_binds.is_pressed(Action::NewCraft) {
+        if key_binds.is_key_pressed(Action::NewCraft) {
             self.manager.c = Craft::new();
         }
 
-        if key_binds.is_pressed(Action::ClearPoints) {
+        if key_binds.is_key_pressed(Action::ClearPoints) {
             self.selected_points.clear();
         }
 
-        if key_binds.is_pressed(Action::PlaceNodes) && self.selected_points.len() >= 1 {
+        if key_binds.is_key_pressed(Action::PlaceNodes) && self.selected_points.len() >= 1 {
             for point in &self.selected_points {
                 let pos = match point {
                     Selected::New(pos) => *pos,
@@ -85,7 +112,7 @@ impl Scene for Editor {
             self.selected_points.clear();
         }
 
-        if key_binds.is_pressed(Action::PlaceRods) && self.selected_points.len() >= 2 {
+        if key_binds.is_key_pressed(Action::PlaceRods) && self.selected_points.len() >= 2 {
             for i in 0..self.selected_points.len() - 1 {
                 let node_a = self.ensure_node(i);
                 let node_b = self.ensure_node(i + 1);
@@ -95,7 +122,7 @@ impl Scene for Editor {
             self.selected_points.clear();
         }
 
-        if key_binds.is_pressed(Action::Delete) && !self.selected_points.is_empty() {
+        if key_binds.is_key_pressed(Action::Delete) && !self.selected_points.is_empty() {
             let mut node_ids = Vec::new();
             let mut rod_ids = Vec::new();
 
@@ -117,6 +144,9 @@ impl Scene for Editor {
 
     fn draw(&self) {
         clear_background(WHITE);
+
+        set_camera(&self.camera);
+        //set_camera(&self.camera);
         draw_craft(&self.manager.c);
 
         for sel in &self.selected_points {
@@ -146,6 +176,7 @@ impl Scene for Editor {
                 SELECT_COLOR.with_alpha(0.7),
             );
         }
+        set_default_camera();
     }
 }
 impl Editor {
@@ -155,6 +186,12 @@ impl Editor {
             selected_points: Vec::new(),
             drag_start: None,
             drag_current: None,
+            camera: Camera2D::from_display_rect(Rect {
+                x: -screen_width() / 2.,
+                y: -screen_height() / 2.,
+                w: screen_width(),
+                h: screen_height(),
+            }),
         }
     }
 
@@ -164,6 +201,12 @@ impl Editor {
             selected_points: Vec::new(),
             drag_start: None,
             drag_current: None,
+            camera: Camera2D::from_display_rect(Rect {
+                x: -screen_width() / 2.,
+                y: -screen_height() / 2.,
+                w: screen_width(),
+                h: screen_height(),
+            }),
         }
     }
 }
