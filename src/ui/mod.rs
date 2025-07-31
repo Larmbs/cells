@@ -1,54 +1,25 @@
-use macroquad::ui::{InputHandler, root_ui};
+//! UI System
+//!
+//! This module allows for the easy creation of ui for games with a clean style
+#![allow(unused)]
 
-pub mod units;
-use units::UiUnits;
+use macroquad::prelude::Rect;
 
-pub struct Ui {
-    ui_components: Vec<UiComponent>,
+mod widgets;
+use widgets::UiWidget;
+
+mod style;
+
+/// Defines the direction in which widgets are drawn
+enum Layout {
+    Row,
+    Column,
 }
-impl Ui {}
-
-struct UiComponent {
-    position: UiUnits,
-    dimensions: UiUnits,
-    root_element: Element,
-}
-
-enum Element {
-    /* Static */
-    Text { label: String },
-
-    /* Display */
-    NumberDisplay { current: f32 },
-    TextDisplay { current: String },
-
-    /* Inputs */
-    NumberInput { label: String, min: f32, max: f32 },
-    NumberSlider { label: String, min: f32, max: f32 },
-    TextInput { label: String },
-    SelectBox { label: String, options: Vec<String> },
-    Button { label: String },
-
-    /* Format */
-    Row { elements: Vec<Element> },
-    Column { elements: Vec<Element> },
-}
-impl Element {
-    fn draw(&self) {
-        match self {
-            Element::Text { label } => todo!(),
-
-            Element::NumberDisplay { current } => todo!(),
-            Element::TextDisplay { current } => todo!(),
-
-            Element::NumberInput { label, min, max } => todo!(),
-            Element::NumberSlider { label, min, max } => todo!(),
-            Element::TextInput { label } => todo!(),
-            Element::SelectBox { label, options } => todo!(),
-            Element::Button { label } => todo!(),
-
-            Element::Row { elements } => todo!(),
-            Element::Column { elements } => todo!(),
-        }
-    }
+/// A box with Ui elements
+pub struct UiComponent {
+    /// Rectangle displaying the UI
+    rect: Rect,
+    /// An array of widgets
+    widgets: Vec<Box<dyn UiWidget>>,
+    layout: Layout,
 }

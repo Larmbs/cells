@@ -62,14 +62,7 @@ impl Scene for Editor {
                 .selected(mouse_world, THRESHOLD)
                 .unwrap_or((Selected::New(mouse_world), 0.0))
                 .0;
-            if !self.selected_points.is_empty()
-                && selected == Selected::Selected(self.selected_points.len() - 1)
-            {
-                self.camera.target = self.resolve_selected_point(&selected);
-                println!("FF");
-            } else {
-                self.selected_points.push(selected);
-            }
+            self.selected_points.push(selected);
         }
 
         if is_mouse_button_pressed(MouseButton::Left) {
@@ -317,3 +310,4 @@ impl Editor {
         }
     }
 }
+
